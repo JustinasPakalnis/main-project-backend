@@ -11,6 +11,7 @@ const connection = mysql2.createConnection({
   user: "root",
   password: "12345678",
   database: "MPD",
+  connectTimeout: 10000,
 });
 
 app.use(express.json());
