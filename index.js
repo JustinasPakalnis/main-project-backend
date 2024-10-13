@@ -65,8 +65,8 @@ app.post("/inventory", (req, res) => {
 
 app.put("/inventory/:id", (req, res) => {
   const inventoryId = req.params.id;
+  const value = "Remowed";
   const q = "UPDATE MPD.inventory SET `status` = ? WHERE id = ?";
-  value = "Remowed";
   connection.query(q, [value, inventoryId], (err, data) => {
     if (err) return res.json(err);
     console.log("inventory buvo deletinta");
