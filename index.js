@@ -53,10 +53,21 @@ app.post("/inventory", (req, res) => {
   });
 });
 
-app.delete("/inventory/:id", (req, res) => {
+// app.delete("/inventory/:id", (req, res) => {
+//   const inventoryId = req.params.id;
+//   const q = "DELETE FROM MPD.inventory WHERE id = ?";
+//   connection.query(q, [inventoryId], (err, data) => {
+//     if (err) return res.json(err);
+//     console.log("inventory buvo deletinta");
+//     return res.json("inventory buvo deletinta");
+//   });
+// });
+
+app.put("/inventory/:id", (req, res) => {
   const inventoryId = req.params.id;
-  const q = "DELETE FROM MPD.inventory WHERE id = ?";
-  connection.query(q, [inventoryId], (err, data) => {
+  const q = "UPDATE MPD.inventory SET `status` = ? WHERE id = ?";
+  value = "Remowed";
+  connection.query(q, [value, inventoryId], (err, data) => {
     if (err) return res.json(err);
     console.log("inventory buvo deletinta");
     return res.json("inventory buvo deletinta");
