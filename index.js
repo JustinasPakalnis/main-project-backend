@@ -65,12 +65,20 @@ app.post("/inventory", (req, res) => {
 
 app.put("/inventory/:id", (req, res) => {
   const inventoryId = req.params.id;
-  const value = "Remowed";
+  const value = "Removed";
   const q = "UPDATE MPD.inventory SET `status` = ? WHERE id = ?";
+
   connection.query(q, [value, inventoryId], (err, data) => {
-    if (err) return res.json(err);
-    console.log("inventory buvo deletinta");
-    return res.json("inventory buvo deletinta");
+    if (err) {
+      console.error(err); // Log the error for debugging
+      return res
+        .status(500)
+        .json({ message: "Internal Server Error", error: err });
+    }
+    console.log("Inventory status updated");
+    return res
+      .status(200)
+      .json({ message: "Inventory item updated successfully" });
   });
 });
 
