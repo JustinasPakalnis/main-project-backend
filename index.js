@@ -19,6 +19,15 @@ const pool = mysql2.createConnection({
 app.use(express.json());
 app.use(cors());
 
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.error("Error connecting to the database:", err.stack);
+    return;
+  }
+  console.log("Connected to the database as ID:", connection.threadId);
+  connection.release();
+});
+
 app.get("/", (req, res) => {
   res.json("hello");
 });
@@ -348,13 +357,6 @@ app.put("/inventory/transfer/decline/:itemID/:transferID", (req, res) => {
   );
 });
 
-pool.connect((err) => {
-  if (err) {
-    console.error("Error connecting to the database:", err.stack);
-    return;
-  }
-  console.log("Connected to the database as ID:", pool.threadId);
-});
 app.listen(8800, () => {
   console.log("connected to backend");
 });
