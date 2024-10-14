@@ -4,16 +4,14 @@ import cors from "cors";
 
 const app = express();
 
-// const mysql = require("mysql2");
-
 const pool = mysql2.createPool({
   host: "34.142.40.170",
   user: "root",
   password: "12345678",
   database: "MPD",
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+  connectionLimit: 100,
+  queueLimit: 1000,
 });
 
 app.use(express.json());
