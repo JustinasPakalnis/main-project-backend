@@ -6,12 +6,14 @@ const app = express();
 
 // const mysql = require("mysql2");
 
-const connection = mysql2.createConnection({
+const pool = mysql2.createConnection({
   host: "34.142.40.170",
   user: "root",
   password: "12345678",
   database: "MPD",
-  connectTimeout: 10000,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
 app.use(express.json());
@@ -23,7 +25,7 @@ app.get("/", (req, res) => {
 
 app.get("/inventory", (req, res) => {
   const q = "SELECT * FROM MPD.inventory";
-  connection.query(q, (err, data) => {
+  pool.query(q, (err, data) => {
     if (err) {
       console.log(err);
       return res.json(err);
@@ -47,7 +49,7 @@ app.post("/inventory", (req, res) => {
   ];
   console.log(req.body);
 
-  connection.query(q, [values], (err, data) => {
+  pool.query(q, [values], (err, data) => {
     if (err) return res.json(err);
     return res.json("Inventory buvo pagaminta");
   });
@@ -70,7 +72,7 @@ app.put("/inventory/delete/:id", (req, res) => {
   console.log(value);
   console.log(inventoryId);
 
-  connection.query(q, [value, inventoryId], (err, data) => {
+  pool.query(q, [value, inventoryId], (err, data) => {
     if (err) {
       console.error(err);
       return res
@@ -98,7 +100,7 @@ app.put("/inventory/:id", (req, res) => {
     req.body.comment,
     req.body.condition,
   ];
-  connection.query(q, [...values, inventoryId], (err, data) => {
+  pool.query(q, [...values, inventoryId], (err, data) => {
     if (err) return res.json(err);
     return res.json("inventory buvo updeitinta");
   });
@@ -108,7 +110,7 @@ app.get("/users", (req, res) => {
   const q =
     "SELECT id, userstatus, type, firstName, lastName, email FROM MPD.users";
 
-  connection.query(q, (err, data) => {
+  pool.query(q, (err, data) => {
     if (err) {
       console.error(err);
       return res.status(500).json({
@@ -124,7 +126,7 @@ app.get("/users", (req, res) => {
 app.get("/usersFullNames", (req, res) => {
   const q =
     "SELECT id, CONCAT(firstName, ' ', lastName) AS fullName FROM MPD.users;";
-  connection.query(q, (err, data) => {
+  pool.query(q, (err, data) => {
     if (err) {
       console.log(err);
       return res.json(err);
@@ -140,7 +142,7 @@ app.post("/api/login", (req, res) => {
 
   const q = "SELECT * FROM MPD.users WHERE email = ?";
 
-  connection.query(q, [email], (err, data) => {
+  pool.query(q, [email], (err, data) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Internal server error" });
@@ -184,7 +186,7 @@ app.post("/users", (req, res) => {
     req.body.lastName,
     req.body.email,
   ];
-  connection.query(q, [values], (err, data) => {
+  pool.query(q, [values], (err, data) => {
     if (err) return res.json(err);
     return res.json("User successfully registered");
   });
@@ -200,7 +202,7 @@ app.post("/users/comment", (req, res) => {
   const values = [req.body.userCommentID, req.body.comment, author];
   console.log(values);
 
-  connection.query(q, values, (err, data) => {
+  pool.query(q, values, (err, data) => {
     if (err) {
       console.error("Error inserting comment:", err);
       return res.status(500).json(err);
@@ -215,7 +217,7 @@ app.get("/usercomments/:id", (req, res) => {
   const q = "SELECT * FROM MPD.usercomment WHERE userId = ?";
   console.log("Fetching comments for user ID:", userId);
 
-  connection.query(q, [userId], (err, data) => {
+  pool.query(q, [userId], (err, data) => {
     if (err) {
       console.log(err);
       return res.status(500).json(err);
@@ -240,11 +242,11 @@ app.post("/inventory/transfer", (req, res) => {
 
   const updateValues = ["Transfer", req.body.itemID];
 
-  connection.query(insertQuery, [transferValues], (insertErr, insertData) => {
+  pool.query(insertQuery, [transferValues], (insertErr, insertData) => {
     if (insertErr) {
       return res.status(500).json(insertErr);
     }
-    connection.query(updateQuery, updateValues, (updateErr, updateData) => {
+    pool.query(updateQuery, updateValues, (updateErr, updateData) => {
       if (updateErr) {
         return res.status(500).json(updateErr);
       }
@@ -266,7 +268,7 @@ app.get("/inventory/transferlist", (req, res) => {
     JOIN MPD.users AS toUser ON item_transfers.to_user = toUser.id
     JOIN MPD.users AS fromUser ON item_transfers.from_user = fromUser.id
   `;
-  connection.query(q, (err, data) => {
+  pool.query(q, (err, data) => {
     if (err) {
       console.log(err);
       return res.json(err);
@@ -290,14 +292,14 @@ app.put("/inventory/transfer/accept/:itemID/:transferID", (req, res) => {
   const updateValuesTransfer = ["completed", transferID];
   const updateValuesItems = [user, "Active", itemId];
 
-  connection.query(
+  pool.query(
     updateValuesTransferq,
     updateValuesTransfer,
     (insertErr, transferData) => {
       if (insertErr) {
         return res.status(500).json(insertErr);
       }
-      connection.query(
+      pool.query(
         updateValuesItemsq,
         updateValuesItems,
         (updateErr, inventoryData) => {
@@ -323,14 +325,14 @@ app.put("/inventory/transfer/decline/:itemID/:transferID", (req, res) => {
   const updateValuesTransfer = ["declined", transferID];
   const updateValuesItems = ["Active", itemId];
 
-  connection.query(
+  pool.query(
     updateValuesTransferq,
     updateValuesTransfer,
     (insertErr, transferData) => {
       if (insertErr) {
         return res.status(500).json(insertErr);
       }
-      connection.query(
+      pool.query(
         updateValuesItemsq,
         updateValuesItems,
         (updateErr, inventoryData) => {
@@ -346,12 +348,12 @@ app.put("/inventory/transfer/decline/:itemID/:transferID", (req, res) => {
   );
 });
 
-connection.connect((err) => {
+pool.connect((err) => {
   if (err) {
     console.error("Error connecting to the database:", err.stack);
     return;
   }
-  console.log("Connected to the database as ID:", connection.threadId);
+  console.log("Connected to the database as ID:", pool.threadId);
 });
 app.listen(8800, () => {
   console.log("connected to backend");
