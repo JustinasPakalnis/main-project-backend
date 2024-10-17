@@ -17,6 +17,12 @@ const pool = mysql2.createPool({
 app.use(express.json());
 app.use(cors());
 
+app.use((req, res, next) => {
+  const now = new Date();
+  console.log(`[${now.toISOString()}] ${req.method} request to ${req.url}`);
+  next();
+});
+
 pool.getConnection((err, connection) => {
   if (err) {
     console.error("Error connecting to the database:", err.stack);
@@ -144,9 +150,6 @@ app.get("/usersFullNames", (req, res) => {
 
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
-  console.log(email);
-  console.log(password);
-
   const q = "SELECT * FROM MPD.users WHERE email = ?";
 
   pool.query(q, [email], (err, data) => {
