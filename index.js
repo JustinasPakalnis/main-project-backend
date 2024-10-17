@@ -125,7 +125,7 @@ app.put("/inventory/:id", (req, res) => {
 
 app.get("/users", (req, res) => {
   const q =
-    "SELECT id, userstatus, type, firstName, lastName, email FROM MPD.users";
+    "SELECT id, userstatus, type, firstName, lastName, email, position, date_of_birth, date_of_hire, employment_type, supervisor_id, qualification, work_location, salary, notes, phone FROM MPD.users";
 
   pool.query(q, (err, data) => {
     if (err) {
