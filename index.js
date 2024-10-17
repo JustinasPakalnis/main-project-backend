@@ -19,7 +19,11 @@ app.use(cors());
 
 app.use((req, res, next) => {
   const now = new Date();
-  console.log(`[${now.toISOString()}] ${req.method} request to ${req.url}`);
+  console.log(
+    `[${now.split("T").join(" ").slice(0, 16)}] ${req.method} request to ${
+      req.url
+    }`
+  );
   next();
 });
 
